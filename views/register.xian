@@ -10,4 +10,5 @@
       <a href="/login" class="text-blue-700 mt-2 text-center">Already have an account? Login</a>
     </form>
   </div>
-<%- include('partials/footer') %>
+
+{{> footer }}

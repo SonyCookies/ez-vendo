@@ -30,12 +30,13 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCq5jBqqzsF3NbGaMgVw_bqz3Aep5wkj3g",
+  authDomain: "ez-vendo.firebaseapp.com",
+  projectId: "ez-vendo",
+  storageBucket: "ez-vendo.firebasestorage.app",
+  messagingSenderId: "502661611145",
+  appId: "1:502661611145:web:db94afdee14fbf98051058",
+  measurementId: "G-KNMTBKQ4PK"
 };
 
 const app = initializeApp(firebaseConfig);

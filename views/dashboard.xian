@@ -7,4 +7,5 @@
       <a href="/logout" class="text-red-600 font-medium">Logout</a>
     </div>
   </div>
-<%- include('partials/footer') %>
+
+{{> footer }}
