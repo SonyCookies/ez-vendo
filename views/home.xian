@@ -1,0 +1,26 @@
+{{> head }}
+<body class="bg-gray-50">
+  <header class="bg-white shadow">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-gray-800">EzVendo</h1>
+      <nav>
+        <ul class="flex space-x-4">
+          <li><a href="/" class="text-gray-600 hover:text-gray-800">Home</a></li>
+          <li><a href="/about" class="text-gray-600 hover:text-gray-800">About</a></li>
+          <li><a href="/contact" class="text-gray-600 hover:text-gray-800">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+    <section class="text-center">
+      <h1 class="text-4xl font-extrabold text-gray-900 mt-10">Welcome to EzVendo</h1>
+      <p class="text-lg text-gray-600 mt-4">Your one-stop solution for all things amazing.</p>
+      <div class="mt-6">
+        <a href="/login" class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">Get Started</a>
+      </div>
+    </section>
+  </main>
+
+{{> footer }}
