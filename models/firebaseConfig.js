@@ -28,15 +28,17 @@ SOFTWARE.
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import dotenv from "dotenv";
+dotenv.config();
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCq5jBqqzsF3NbGaMgVw_bqz3Aep5wkj3g",
-  authDomain: "ez-vendo.firebaseapp.com",
-  projectId: "ez-vendo",
-  storageBucket: "ez-vendo.firebasestorage.app",
-  messagingSenderId: "502661611145",
-  appId: "1:502661611145:web:db94afdee14fbf98051058",
-  measurementId: "G-KNMTBKQ4PK"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
