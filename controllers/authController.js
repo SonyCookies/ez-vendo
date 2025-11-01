@@ -31,57 +31,58 @@ import {
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
-export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const userId = userCredential.user.uid;
-    res.status(200).json({ message: "Login successful", userId });
-  } catch (error) {
-    console.error("Login error:", error.message);
-    res.status(400).json({ error: "Login failed", details: error.message });
-  }
-};
 
-export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+// export const loginUser = async (req, res) => {
+//   const { email, password } = req.body;
+//   try {
+//     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+//     const userId = userCredential.user.uid;
+//     res.status(200).json({ message: "Login successful", userId });
+//   } catch (error) {
+//     console.error("Login error:", error.message);
+//     res.status(400).json({ error: "Login failed", details: error.message });
+//   }
+// };
 
-  // Validate input data
-  if (!name || !email || !password) {
-    return res.status(400).json({
-      error: "Registration failed",
-      details: "Name, email, and password are required fields."
-    });
-  }
+// export const registerUser = async (req, res) => {
+//   const { name, email, password } = req.body;
 
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+//   // Validate input data
+//   if (!name || !email || !password) {
+//     return res.status(400).json({
+//       error: "Registration failed",
+//       details: "Name, email, and password are required fields."
+//     });
+//   }
 
-    // Save additional user data to Firestore
-    await setDoc(doc(db, "users", user.uid), {
-      name,
-      email,
-      createdAt: new Date()
-    });
+//   try {
+//     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+//     const user = userCredential.user;
 
-    res.status(201).json({ message: "Registration successful", userId: user.uid });
-  } catch (error) {
-    console.error("Registration error:", error.message);
-    res.status(400).json({ error: "Registration failed", details: error.message });
-  }
-};
+//     // Save additional user data to Firestore
+//     await setDoc(doc(db, "users", user.uid), {
+//       name,
+//       email,
+//       createdAt: new Date()
+//     });
 
-export const logoutUser = async (req, res) => {
-  try {
-    await signOut(auth);
-    res.status(200).json({ message: "Logout successful" });
-  } catch (error) {
-    console.error("Logout error:", error.message);
-    res.status(400).json({ error: "Logout failed", details: error.message });
-  }
-};
+//     res.status(201).json({ message: "Registration successful", userId: user.uid });
+//   } catch (error) {
+//     console.error("Registration error:", error.message);
+//     res.status(400).json({ error: "Registration failed", details: error.message });
+//   }
+// };
 
-export const dashboardPage = (req, res) => {
-  res.status(200).json({ message: "Dashboard endpoint reached" });
-};
+// export const logoutUser = async (req, res) => {
+//   try {
+//     await signOut(auth);
+//     res.status(200).json({ message: "Logout successful" });
+//   } catch (error) {
+//     console.error("Logout error:", error.message);
+//     res.status(400).json({ error: "Logout failed", details: error.message });
+//   }
+// };
+
+// export const dashboardPage = (req, res) => {
+//   res.status(200).json({ message: "Dashboard endpoint reached" });
+// };
