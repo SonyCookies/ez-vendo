@@ -1,5 +1,4 @@
-
-  /*
+/*
     MIT License
     
     Copyright (c) 2025 Christian I. Cabrera || XianFire Framework
@@ -25,18 +24,13 @@
     */
     
 import express from "express";
-import { homePage } from "../controllers/homeController.js";
 const router = express.Router();
-router.get("/", homePage);
 
-import { loginPage, registerPage, forgotPasswordPage, dashboardPage, loginUser, registerUser, logoutUser } from "../controllers/authController.js";
+import { loginUser, registerUser, logoutUser, dashboardPage } from "../controllers/authController.js";
 
-router.get("/login", loginPage);
 router.post("/login", loginUser);
-router.get("/register", registerPage);
 router.post("/register", registerUser);
-router.get("/forgot-password", forgotPasswordPage);
-router.get("/dashboard", dashboardPage);
 router.get("/logout", logoutUser);
+router.get("/dashboard", dashboardPage);
 
 export default router;

@@ -1,5 +1,4 @@
-
-      /*
+/*
     MIT License
     
     Copyright (c) 2025 Christian I. Cabrera || XianFire Framework
@@ -32,28 +31,29 @@ import {
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
-export const loginPage = (req, res) => res.render("login", { title: "Login" });
-export const registerPage = (req, res) => res.render("register", { title: "Register" });
-export const forgotPasswordPage = (req, res) => res.render("forgotpassword", { title: "Forgot Password" });
-export const dashboardPage = (req, res) => {
-  if (!req.session.userId) return res.redirect("/login");
-  res.render("dashboard", { title: "Dashboard" });
-};
-
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    req.session.userId = userCredential.user.uid;
-    res.redirect("/dashboard");
+    const userId = userCredential.user.uid;
+    res.status(200).json({ message: "Login successful", userId });
   } catch (error) {
     console.error("Login error:", error.message);
-    res.send("Login failed: " + error.message);
+    res.status(400).json({ error: "Login failed", details: error.message });
   }
 };
 
 export const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
+
+  // Validate input data
+  if (!name || !email || !password) {
+    return res.status(400).json({
+      error: "Registration failed",
+      details: "Name, email, and password are required fields."
+    });
+  }
+
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -65,21 +65,23 @@ export const registerUser = async (req, res) => {
       createdAt: new Date()
     });
 
-    req.session.userId = user.uid;
-    res.redirect("/dashboard");
+    res.status(201).json({ message: "Registration successful", userId: user.uid });
   } catch (error) {
     console.error("Registration error:", error.message);
-    res.send("Registration failed: " + error.message);
+    res.status(400).json({ error: "Registration failed", details: error.message });
   }
 };
 
 export const logoutUser = async (req, res) => {
   try {
     await signOut(auth);
-    req.session.destroy();
-    res.redirect("/login");
+    res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("Logout error:", error.message);
-    res.send("Logout failed");
+    res.status(400).json({ error: "Logout failed", details: error.message });
   }
+};
+
+export const dashboardPage = (req, res) => {
+  res.status(200).json({ message: "Dashboard endpoint reached" });
 };

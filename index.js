@@ -32,6 +32,7 @@ import fs from 'fs';
 import hbs from "hbs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import cors from "cors";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -50,56 +51,59 @@ app.use(session({
 }));
 app.use(flash());
 
-app.engine("xian", async (filePath, options, callback) => {
-  try {
-     const originalPartialsDir = hbs.partialsDir;
-    hbs.partialsDir = path.join(__dirname, 'views');
+// Enable CORS for all routes
+app.use(cors({
+  origin: "*", // Replace with your frontend domain in production
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-    const result = await new Promise((resolve, reject) => {
-      hbs.__express(filePath, options, (err, html) => {
-        if (err) return reject(err);
-        resolve(html);
-      });
-    });
+// Commented out templating engine configuration and view-related code
+// app.engine("xian", async (filePath, options, callback) => {
+//   try {
+//      const originalPartialsDir = hbs.partialsDir;
+//     hbs.partialsDir = path.join(__dirname, 'views');
 
-    hbs.partialsDir = originalPartialsDir;
-    callback(null, result);
-  } catch (err) {
-    callback(err);
-  }
-});
-app.use((req, res, next) => {
-  res.locals.success_msg = req.flash("success_msg");
-  res.locals.error_msg = req.flash("error_msg");
-  next();
-});
+//     const result = await new Promise((resolve, reject) => {
+//       hbs.__express(filePath, options, (err, html) => {
+//         if (err) return reject(err);
+//         resolve(html);
+//       });
+//     });
 
+//     hbs.partialsDir = originalPartialsDir;
+//     callback(null, result);
+//   } catch (err) {
+//     callback(err);
+//   }
+// });
 
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "xian");
-const partialsDir = path.join(__dirname, "views/partials");
-fs.readdir(partialsDir, (err, files) => {
-  if (err) {
-    console.error("❌ Could not read partials directory:", err);
-    return;
-  }
+// app.set("views", path.join(__dirname, "views"));
+// app.set("view engine", "xian");
 
-   files
-    .filter(file => file.endsWith('.xian'))
-    .forEach(file => {
-      const partialName = file.replace('.xian', ''); 
-      const fullPath = path.join(partialsDir, file);
+// const partialsDir = path.join(__dirname, "views/partials");
+// fs.readdir(partialsDir, (err, files) => {
+//   if (err) {
+//     console.error("❌ Could not read partials directory:", err);
+//     return;
+//   }
 
-      fs.readFile(fullPath, 'utf8', (err, content) => {
-        if (err) {
-          console.error(`❌ Failed to read partial: ${file}`, err);
-          return;
-        }
-        hbs.registerPartial(partialName, content);
+//    files
+//     .filter(file => file.endsWith('.xian'))
+//     .forEach(file => {
+//       const partialName = file.replace('.xian', ''); 
+//       const fullPath = path.join(partialsDir, file);
+
+//       fs.readFile(fullPath, 'utf8', (err, content) => {
+//         if (err) {
+//           console.error(`❌ Failed to read partial: ${file}`, err);
+//           return;
+//         }
+//         hbs.registerPartial(partialName, content);
         
-      });
-    });
-});
+//       });
+//     });
+// });
 
 app.use("/", router);
 
