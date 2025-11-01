@@ -26,12 +26,27 @@
 import express from "express";
 const router = express.Router();
 
-//import { loginUser, registerUser, logoutUser, dashboardPage } from "../controllers/authController.js";
-import { } from "../controllers/authController.js";
+import { loginUser, registerUser, getUserDetails, logoutUser } from "../controllers/authController.js";
+import { verifyTokenMiddleware } from "../middleware/authMiddleware.js";
 
-// router.post("/login", loginUser);
-// router.post("/register", registerUser);
-// router.get("/logout", logoutUser);
-// router.get("/dashboard", dashboardPage);
+// Apply middleware to all /api/user/* routes except /api/user/login
+router.use("/api/user", (req, res, next) => {
+  if (req.path === "/login" || req.path === "/register") {
+    return next(); // Skip middleware for login endpoint
+  }
+  verifyTokenMiddleware(req, res, next);
+});
+
+// Add the login endpoint
+router.post("/api/user/login", loginUser);
+
+// Add the register endpoint
+router.post("/api/user/register", registerUser);
+
+// Add the user details endpoint
+router.get("/api/user/details", getUserDetails);
+
+// Logout endpoint
+router.post("/api/user/logout", logoutUser);
 
 export default router;

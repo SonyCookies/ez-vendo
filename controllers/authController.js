@@ -23,65 +23,221 @@
     SOFTWARE.
     */
     
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { auth, db } from "../models/firebaseConfig.js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { addToBlocklist } from "../middleware/authMiddleware.js";
 
+export const loginUser = async (req, res) => {
+  const { email, password } = req.body;
 
-// export const loginUser = async (req, res) => {
-//   const { email, password } = req.body;
-//   try {
-//     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-//     const userId = userCredential.user.uid;
-//     res.status(200).json({ message: "Login successful", userId });
-//   } catch (error) {
-//     console.error("Login error:", error.message);
-//     res.status(400).json({ error: "Login failed", details: error.message });
-//   }
-// };
+  // Validate input
+  if (!email || !password) {
+    return res.status(400).json({
+      status: "FAIL",
+      message: "Email and password are required."
+    });
+  }
 
-// export const registerUser = async (req, res) => {
-//   const { name, email, password } = req.body;
+  try {
+    // Authenticate user with Firebase Authentication
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-//   // Validate input data
-//   if (!name || !email || !password) {
-//     return res.status(400).json({
-//       error: "Registration failed",
-//       details: "Name, email, and password are required fields."
-//     });
-//   }
+    // Retrieve additional user data from Firestore
+    const userDoc = await getDoc(doc(db, "users", user.uid));
 
-//   try {
-//     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-//     const user = userCredential.user;
+    if (!userDoc.exists()) {
+      return res.status(404).json({
+        status: "FAIL",
+        message: "Account not found."
+      });
+    }
 
-//     // Save additional user data to Firestore
-//     await setDoc(doc(db, "users", user.uid), {
-//       name,
-//       email,
-//       createdAt: new Date()
-//     });
+    const userData = userDoc.data();
 
-//     res.status(201).json({ message: "Registration successful", userId: user.uid });
-//   } catch (error) {
-//     console.error("Registration error:", error.message);
-//     res.status(400).json({ error: "Registration failed", details: error.message });
-//   }
-// };
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.uid, email: user.email, name: userData.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
-// export const logoutUser = async (req, res) => {
-//   try {
-//     await signOut(auth);
-//     res.status(200).json({ message: "Logout successful" });
-//   } catch (error) {
-//     console.error("Logout error:", error.message);
-//     res.status(400).json({ error: "Logout failed", details: error.message });
-//   }
-// };
+    res.status(200).json({
+      status: "SUCCESS",
+      message: "Login successful.",
+      token,
+      user: {
+        id: user.uid,
+        name: userData.username,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error("Login error:", error.message);
+    res.status(500).json({
+      status: "ERROR",
+      message: "An error occurred during login. Please try again later."
+    });
+  }
+};
+
+export const registerUser = async (req, res) => {
+  const { username, email, password } = req.body;
+
+  // Validate input
+  if (!username || !email || !password) {
+    return res.status(400).json({
+      status: "FAIL",
+      message: "Username, email, and password are required."
+    });
+  }
+
+  try {
+    // Register user in Firebase Authentication
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Save additional user data to Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      username,
+      email,
+      createdAt: new Date()
+    });
+
+    res.status(201).json({
+      status: "SUCCESS",
+      message: "Registration successful.",
+      user: {
+        id: user.uid,
+        username,
+        email
+      }
+    });
+  } catch (error) {
+    console.error("Registration error:", error.message);
+    res.status(500).json({
+      status: "ERROR",
+      message: "An error occurred during registration. Please try again later."
+    });
+  }
+};
+
+export const getUserDetails = async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  // Validate token
+  if (!token) {
+    return res.status(401).json({
+      status: "FAIL",
+      message: "Invalid or expired session"
+    });
+  }
+
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Decoded token:", decoded); // Log decoded token for debugging
+
+    const userId = decoded.id;
+
+    // Retrieve user data from Firestore
+    const userDoc = await getDoc(doc(db, "users", userId));
+
+    if (!userDoc.exists()) {
+      return res.status(404).json({
+        status: "FAIL",
+        message: "User not found"
+      });
+    }
+
+    const userData = userDoc.data();
+
+    // Construct response
+    res.status(200).json({
+      status: "SUCCESS",
+      user: {
+        id: userId,
+        email: userData.email,
+        rfid_uid: userData.rfid_uid || "Unknown",
+        balance: userData.balance || 0,
+        usageHistory: userData.usageHistory || []
+      }
+    });
+  } catch (error) {
+    console.error("Error retrieving user details:", error.message);
+
+    // Handle specific JWT errors
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        status: "FAIL",
+        message: "Session expired. Please log in again."
+      });
+    } else if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        status: "FAIL",
+        message: "Invalid token. Please log in again."
+      });
+    }
+
+    res.status(500).json({
+      status: "ERROR",
+      message: "An error occurred while retrieving user data"
+    });
+  }
+};
+
+export const logoutUser = async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  // Validate token
+  if (!token) {
+    return res.status(401).json({
+      status: "FAIL",
+      message: "Invalid or missing session token."
+    });
+  }
+
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Decoded token for logout:", decoded); // Debugging log
+
+    // Add token to Firestore blocklist
+    await addToBlocklist(token);
+
+    res.status(200).json({
+      status: "SUCCESS",
+      message: "User logged out successfully."
+    });
+  } catch (error) {
+    console.error("Error during logout:", error.message);
+
+    // Handle specific JWT errors
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        status: "FAIL",
+        message: "Session already ended or token expired."
+      });
+    } else if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        status: "FAIL",
+        message: "Invalid token."
+      });
+    }
+
+    res.status(500).json({
+      status: "ERROR",
+      message: "An error occurred during logout. Please try again later."
+    });
+  }
+};
 
 // export const dashboardPage = (req, res) => {
 //   res.status(200).json({ message: "Dashboard endpoint reached" });
