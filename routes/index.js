@@ -37,16 +37,16 @@ router.use("/api/user", (req, res, next) => {
   verifyTokenMiddleware(req, res, next);
 });
 
-// Add the login endpoint
+// login endpoint
 router.post("/api/user/login", loginUser);
 
-// Add the register endpoint
+// register endpoint
 router.post("/api/user/register", registerUser);
 
-// Add the user details endpoint
+// user details endpoint
 router.get("/api/user/details", getUserDetails);
 
-// Logout endpoint
+// logout endpoint
 router.post("/api/user/logout", logoutUser);
 
 export default router;
